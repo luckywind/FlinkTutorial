@@ -1,0 +1,46 @@
+package com.atguigu.ch2
+
+import java.time.Duration
+
+import com.atguigu.demo.chapter05.{ClickSource, Event}
+import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
+import org.slf4j.LoggerFactory
+import org.apache.flink.streaming.api.scala._
+
+/**
+ * Copyright (c) 2015 XiaoMi Inc. All Rights Reserved. 
+ *
+ * @author chengxingfu <chengxingfu@xiaomi.com>
+ * @Date 2022-08-27  
+ * @Desc
+ */
+object WaterMarkTest {
+  val defaultPartion = 200
+  val defaultShufflePartion = 500
+  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName)
+
+  def main(args: Array[String]): Unit = {
+
+
+    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
+    env.setParallelism(1)
+    env.addSource(new ClickSource)
+      .assignTimestampsAndWatermarks(
+        WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(5))
+          .withTimestampAssigner(
+            new SerializableTimestampAssigner[Event] {
+              override def extractTimestamp(t: Event, l: Long): Long = {
+                t.timestamp
+              }
+            }
+          )
+      )
+      .print()
+
+
+    env.execute()
+
+
+
+  }
+}
