@@ -3,7 +3,7 @@ package com.atguigu.ch2
 import com.atguigu.demo.chapter05.ClickSource
 import org.slf4j.LoggerFactory
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
+import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindows, TumblingEventTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
 
 /**
@@ -27,7 +27,8 @@ object WindowTest {
       .assignAscendingTimestamps(_.timestamp)
       .map(r=>(r.user,1L))
       .keyBy(_._1)
-      .window(TumblingEventTimeWindows.of(Time.seconds(5)))
+      .window(TumblingEventTimeWindows.of(Time.seconds(5),Time.seconds(1)))
+//      .window(SlidingEventTimeWindows.of(Time.seconds(10),Time.seconds(5)))
       .reduce((r1,r2)=>(r1._1,  (r1._2+r2._2)))
       .print()
 

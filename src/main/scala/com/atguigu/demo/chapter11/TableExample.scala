@@ -3,6 +3,7 @@ package com.atguigu.demo.chapter11
 import com.atguigu.demo.chapter05.Event
 import org.slf4j.LoggerFactory
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.table.api.Table
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 
 /**
@@ -37,7 +38,19 @@ object TableExample {
     val eventTable = tableEnv.fromDataStream(eventStream)
     // 用执行 SQL 的方式提取数据
     val visitTable = tableEnv.sqlQuery("select url, user from " + eventTable) // 将表转换成数据流，打印输出
-    tableEnv.toDataStream(visitTable).print() // 执行程序
+//    tableEnv.toDataStream(visitTable).print() // 执行程序
+
+    val cntTable=tableEnv.sqlQuery(
+      s"""
+        |select user,count(1) cnt from ${eventTable} group by user
+        |""".stripMargin)
+
+    tableEnv.toChangelogStream(cntTable)
+        .print()
+
+
+
+
     env.execute()
   }
 }
